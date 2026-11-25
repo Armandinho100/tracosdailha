@@ -6,10 +6,8 @@
   <title>Traços da Ilha — Fineline & Tattoos Minimalistas | São Luís, MA</title>
   <meta name="description" content="Estúdio privado especializado em tatuagens minimalistas, fineline, lettering delicado e flash tattoos em São Luís - MA. Agende sua sessão." />
 
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Google Fonts: Cormorant Garamond (Editorial Serif) & Plus Jakarta Sans (Clean UI Sans) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -33,6 +31,7 @@
           boxShadow: {
             'soft': '0 10px 40px -15px rgba(18, 18, 18, 0.06)',
             'float': '0 16px 36px -8px rgba(18, 18, 18, 0.14)',
+            'book': '0 30px 60px -20px rgba(18, 18, 18, 0.28), 0 8px 18px -8px rgba(18, 18, 18, 0.12)',
           }
         }
       }
@@ -40,7 +39,6 @@
   </script>
 
   <style>
-    /* Micro-refinamentos de tipografia e interações */
     body {
       background-color: #F9F8F6;
       color: #121212;
@@ -49,7 +47,6 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Animação sutil da agulha / traço no Hero */
     @keyframes drawLine {
       from { stroke-dashoffset: 180; }
       to { stroke-dashoffset: 0; }
@@ -60,25 +57,60 @@
       animation: drawLine 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
-    /* Transição suave dos cards do catálogo */
-    .catalog-card {
-      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease, box-shadow 0.35s ease;
-    }
-    .catalog-card:hover {
-      transform: translateY(-4px);
-      border-color: #121212;
-      box-shadow: 0 14px 32px -12px rgba(18, 18, 18, 0.08);
-    }
-
-    /* Esconder scrollbar horizontal em abas mobile mantendo o scroll fluido */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ===== LIVRO / PÁGINAS ===== */
+    .book-stage { perspective: 1600px; }
+
+    /* "Folhas" empilhadas atrás da página atual */
+    .book-sheet-wrap { position: relative; }
+    .book-sheet-wrap::before,
+    .book-sheet-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      border: 1px solid #E4E2DC;
+      border-radius: 10px;
+      z-index: 0;
+    }
+    .book-sheet-wrap::before { transform: translate(7px, 7px); }
+    .book-sheet-wrap::after  { transform: translate(14px, 14px); opacity: .7; }
+
+    .book-page {
+      position: relative;
+      z-index: 1;
+      background: #fff;
+      border: 1px solid #E4E2DC;
+      border-radius: 10px;
+      overflow: hidden;
+      transform-origin: left center;
+      will-change: transform, opacity;
+    }
+    /* sombra de dobra no lado da lombada */
+    .book-page::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 26px;
+      background: linear-gradient(to right, rgba(18,18,18,.07), rgba(18,18,18,0));
+      pointer-events: none;
+    }
+
+    .thumb { transition: border-color .25s ease, transform .25s ease, opacity .25s ease; opacity: .6; }
+    .thumb:hover { opacity: 1; transform: translateY(-2px); }
+    .thumb.is-active { border-color: #121212; opacity: 1; }
+
+    .arrow-btn { transition: all .25s ease; }
+    .arrow-btn:hover:not(:disabled) { background:#121212; color:#F9F8F6; border-color:#121212; }
+    .arrow-btn:disabled { opacity: .3; cursor: not-allowed; }
   </style>
 </head>
 <body class="bg-paper text-ink selection:bg-ink selection:text-paper overflow-x-hidden">
 
   <!-- =====================================================================
-       CONFIGURAÇÃO CENTRAL DO ESTÚDIO (EDITE AQUI NO VS CODE FACILMENTE)
+       CONFIGURAÇÃO CENTRAL DO ESTÚDIO (EDITE AQUI)
        ===================================================================== -->
   <script>
     const STUDIO_CONFIG = {
@@ -86,114 +118,74 @@
       tagline: "Fineline & Minimalismo • São Luís, MA",
       artistHandle: "@pit_tattoo098",
       instagramUrl: "https://www.instagram.com/pit_tattoo098/",
-      whatsappNumber: "5598985406108", // Formato internacional: 55 + DDD + Número
+      whatsappNumber: "5598985406108", // 55 + DDD + número
       whatsappDisplay: "(98) 98540-6108",
       city: "São Luís — Maranhão",
       studioNote: "Atendimento privado com horário marcado e material 100% descartável.",
 
       /**
-       * CATÁLOGO DE FLASHES & INSPIRAÇÕES
-       * Como colocar suas fotos no VS Code:
-       * 1. Crie uma pasta chamada "img" junto com este arquivo index.html.
-       * 2. Salve suas fotos lá (ex: img/t1.jpg, img/t2.jpg...).
-       * 3. Preencha o campo `imageUrl: "./img/t1.jpg"` no item desejado.
-       * Enquanto `imageUrl` estiver vazio (""), o site exibe uma arte fineline vetorial exclusiva!
+       * CATÁLOGO EM PÁGINAS
+       * Cada item é UMA FOLHA INTEIRA de flashes (a imagem completa, sem recortes).
+       *
+       * Como usar no VS Code:
+       * 1. Crie a pasta "img" ao lado deste index.html.
+       * 2. Salve cada folha lá com os nomes abaixo (ou mude o campo `image`):
+       *      img/t1.PNG  → flores delicadas (6 ramos)
+       *      img/t2.PNG  → rosas (6 rosas)
+       *      img/t3.PNG  → coleção botânica (lírios, rosas, girassóis, margaridas...)
+       *      img/t4.PNG  → mini flores
+       *      img/t5.PNG  → símbolos & ilha
+       *    (a extensão é .PNG em maiúsculas, igual ao nome dos arquivos)
+       * 3. Para adicionar mais páginas, copie um bloco { ... } e mude os dados.
        */
-      catalogItems: [
+      pages: [
         {
-          id: "flash-01",
-          title: "Saudade & Tipografia Fina",
-          category: "lettering",
-          categoryLabel: "Lettering",
-          size: "3cm – 5cm",
-          origin: "Flash / Inspiração",
-          imageUrl: "", // Ex: "./img/t1.jpg"
-          svgKey: "saudade"
+          title: "Flores Delicadas",
+          label: "Florais",
+          size: "3cm – 6cm",
+          image: "./img/t1.PNG",
+          desc: "Seis ramos de florzinhas em traço contínuo, leves e perfeitos para antebraço, tornozelo ou costelas."
         },
         {
-          id: "flash-02",
-          title: "Sol & Onda da Ilha",
-          category: "simbolos",
-          categoryLabel: "Símbolos & Natureza",
-          size: "4cm – 6cm",
-          origin: "Flash Autoral",
-          imageUrl: "", // Ex: "./img/t3.jpg"
-          svgKey: "sunwave"
-        },
-        {
-          id: "flash-03",
-          title: "Sincronicidade 11:11",
-          category: "numeros",
-          categoryLabel: "Números & Astros",
-          size: "2cm – 4cm",
-          origin: "Minimalista",
-          imageUrl: "", // Ex: "./img/t5.jpg"
-          svgKey: "1111"
-        },
-        {
-          id: "flash-04",
-          title: "Silhueta Felina",
-          category: "simbolos",
-          categoryLabel: "Símbolos & Natureza",
-          size: "3cm – 5cm",
-          origin: "Traço Contínuo",
-          imageUrl: "", // Ex: "./img/t.jpg"
-          svgKey: "cat"
-        },
-        {
-          id: "flash-05",
-          title: "Resiliência Botânica",
-          category: "lettering",
-          categoryLabel: "Lettering",
+          title: "Rosas Fineline",
+          label: "Florais",
           size: "4cm – 7cm",
-          origin: "Caligrafia Fina",
-          imageUrl: "",
-          svgKey: "resiliencia"
+          image: "./img/t2.PNG",
+          desc: "Seis rosas com folhas e caule, no traço fino. Escolha a sua favorita ou peça uma mistura."
         },
         {
-          id: "flash-06",
-          title: "Órbita & Saturno",
-          category: "numeros",
-          categoryLabel: "Números & Astros",
-          size: "2.5cm – 4.5cm",
-          origin: "Micro Tattoo",
-          imageUrl: "",
-          svgKey: "saturn"
+          title: "Coleção Botânica",
+          label: "Florais",
+          size: "3cm – 8cm",
+          image: "./img/t3.PNG",
+          desc: "Lírios, rosas, girassóis, margaridas e florzinhas. A página mais completa para escolher com calma."
         },
         {
-          id: "flash-07",
-          title: "Axé • Fé • Liberdade",
-          category: "lettering",
-          categoryLabel: "Lettering",
-          size: "3cm – 5cm",
-          origin: "Palavras com Alma",
-          imageUrl: "", // Ex: "./img/t2.jpg"
-          svgKey: "axe"
+          title: "Mini Flores",
+          label: "Micro",
+          size: "2cm – 4cm",
+          image: "./img/t4.PNG",
+          desc: "Micro tattoos delicadas: tulipas, papoulas, trevo, cerejeira e muito mais, em tamanho pequeno."
         },
         {
-          id: "flash-08",
-          title: "Rosa Delicada Fineline",
-          category: "simbolos",
-          categoryLabel: "Símbolos & Natureza",
-          size: "4cm – 6cm",
-          origin: "Botânico",
-          imageUrl: "",
-          svgKey: "rose"
+          title: "Símbolos & Ilha",
+          label: "Símbolos",
+          size: "2cm – 5cm",
+          image: "./img/t5.PNG",
+          desc: "Lua, ondas, palmeira, concha, abacaxi, montanhas e outros símbolos para pequenas tattoos."
         }
       ]
     };
   </script>
 
   <!-- =====================================================================
-       1. NAVEGAÇÃO SUPERIOR FLUTUANTE (GLASSMORPHISM)
+       1. NAVEGAÇÃO
        ===================================================================== -->
   <header class="fixed top-0 inset-x-0 z-40 transition-all duration-300">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4">
       <nav class="bg-paper/85 backdrop-blur-md border border-hairline rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-soft">
-        <!-- Marca -->
         <a href="#inicio" class="flex items-center gap-2.5 group focus:outline-none">
           <span class="w-8 h-8 rounded-full border border-ink/20 flex items-center justify-center bg-surface group-hover:border-ink transition-colors">
-            <!-- Ícone Minimalista de Agulha / Traço -->
             <svg class="w-4 h-4 text-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 3L21 6L9 18L4 20L6 15L18 3Z" />
               <path d="M15 6L18 9" />
@@ -201,23 +193,17 @@
             </svg>
           </span>
           <div class="flex flex-col">
-            <span id="nav-studio-name" class="font-serif text-lg sm:text-xl font-semibold tracking-tight leading-none text-ink">
-              Traços da Ilha
-            </span>
-            <span class="text-[10px] uppercase tracking-[0.2em] text-graphite hidden sm:block mt-0.5">
-              Estúdio Privado
-            </span>
+            <span id="nav-studio-name" class="font-serif text-lg sm:text-xl font-semibold tracking-tight leading-none text-ink">Traços da Ilha</span>
+            <span class="text-[10px] uppercase tracking-[0.2em] text-graphite hidden sm:block mt-0.5">Estúdio Privado</span>
           </div>
         </a>
 
-        <!-- Links Centrais -->
         <div class="hidden md:flex items-center gap-7 text-xs uppercase tracking-[0.16em] text-graphite font-medium">
-          <a href="#catalogo" class="hover:text-ink transition-colors py-1">Catálogo Flash</a>
+          <a href="#catalogo" class="hover:text-ink transition-colors py-1">Catálogo</a>
           <a href="#processo" class="hover:text-ink transition-colors py-1">Processo</a>
           <a href="#orcamento" class="hover:text-ink transition-colors py-1">Orçamento</a>
         </div>
 
-        <!-- Ações Rápidas -->
         <div class="flex items-center gap-2 sm:gap-3">
           <a id="nav-ig-link" href="https://www.instagram.com/pit_tattoo098/" target="_blank" rel="noopener noreferrer"
              aria-label="Instagram Traços da Ilha"
@@ -238,28 +224,24 @@
   </header>
 
   <!-- =====================================================================
-       2. HERO SECTION (EDITORIAL & RESPIRO VISUAL)
+       2. HERO
        ===================================================================== -->
   <section id="inicio" class="relative pt-32 pb-16 sm:pt-40 sm:pb-24 px-4 sm:px-6">
     <div class="max-w-5xl mx-auto text-center">
-      <!-- Eyebrow de Localização -->
       <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-hairline text-[11px] uppercase tracking-[0.22em] text-graphite mb-7">
         <span class="w-1.5 h-1.5 rounded-full bg-ink"></span>
         <span id="hero-tagline">Fineline & Minimalismo • São Luís, MA</span>
       </div>
 
-      <!-- Título Editorial -->
       <h1 class="font-serif text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-ink leading-[1.08] max-w-3xl mx-auto">
         Traços leves, <br class="hidden sm:inline" />
         <span class="italic font-normal text-graphite">significados eternos.</span>
       </h1>
 
-      <!-- Subtítulo Direto -->
       <p class="mt-6 text-sm sm:text-base text-graphite max-w-xl mx-auto leading-relaxed font-light">
-        Especializado em <strong class="font-medium text-ink">fineline</strong>, palavras delicadas e símbolos minimalistas. Escolha uma arte pronta do nosso catálogo ou traga a sua própria referência para criar algo único.
+        Especializado em <strong class="font-medium text-ink">fineline</strong>, palavras delicadas e símbolos minimalistas. Folheie o catálogo, escolha o seu desenho ou traga a sua própria referência.
       </p>
 
-      <!-- Linha Artística Animada -->
       <div class="my-8 flex justify-center" aria-hidden="true">
         <svg class="w-44 h-6 text-ink/60" viewBox="0 0 180 24" fill="none">
           <path class="animate-draw" d="M4 16 C 45 16, 65 6, 90 12 C 115 18, 135 8, 176 10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" />
@@ -267,42 +249,40 @@
         </svg>
       </div>
 
-      <!-- Botões Principais -->
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-        <a href="#orcamento"
+        <a href="#catalogo"
            class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-ink text-paper text-xs sm:text-sm font-medium tracking-wider uppercase hover:bg-ink/90 transition-all shadow-soft flex items-center justify-center gap-2">
-          <span>Simular Orçamento</span>
+          <span>Folhear Catálogo</span>
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
           </svg>
         </a>
-        <a href="#catalogo"
+        <a href="#orcamento"
            class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-surface border border-hairline text-ink text-xs sm:text-sm font-medium tracking-wider uppercase hover:border-ink transition-all flex items-center justify-center gap-2">
-          <span>Explorar Catálogo</span>
+          <span>Simular Orçamento</span>
         </a>
       </div>
 
-      <!-- Diferenciais Minimalistas -->
       <div class="mt-14 pt-8 border-t border-hairline grid grid-cols-1 sm:grid-cols-3 gap-6 text-left sm:text-center max-w-3xl mx-auto">
         <div class="flex sm:flex-col items-center gap-3 sm:gap-1.5">
-          <span class="text-xs font-serif italic text-lg text-ink">01.</span>
+          <span class="font-serif italic text-lg text-ink">01.</span>
           <div>
             <p class="text-xs uppercase tracking-[0.15em] font-semibold text-ink">Precisão Fineline</p>
             <p class="text-xs text-graphite mt-0.5">Agulhas ultrafinas para cicatrização limpa.</p>
           </div>
         </div>
         <div class="flex sm:flex-col items-center gap-3 sm:gap-1.5">
-          <span class="text-xs font-serif italic text-lg text-ink">02.</span>
+          <span class="font-serif italic text-lg text-ink">02.</span>
           <div>
             <p class="text-xs uppercase tracking-[0.15em] font-semibold text-ink">Biossegurança Total</p>
             <p class="text-xs text-graphite mt-0.5">Material 100% descartável e ambiente estéril.</p>
           </div>
         </div>
         <div class="flex sm:flex-col items-center gap-3 sm:gap-1.5">
-          <span class="text-xs font-serif italic text-lg text-ink">03.</span>
+          <span class="font-serif italic text-lg text-ink">03.</span>
           <div>
             <p class="text-xs uppercase tracking-[0.15em] font-semibold text-ink">Sua Ideia ou Flash</p>
-            <p class="text-xs text-graphite mt-0.5">Artes autorais do estúdio ou referências suas.</p>
+            <p class="text-xs text-graphite mt-0.5">Artes do catálogo ou referências suas.</p>
           </div>
         </div>
       </div>
@@ -310,67 +290,106 @@
   </section>
 
   <!-- =====================================================================
-       3. CATÁLOGO INTERATIVO (FLASH TATTOOS & INSPIRAÇÕES)
+       3. CATÁLOGO EM PÁGINAS
        ===================================================================== -->
   <section id="catalogo" class="py-16 sm:py-24 px-4 sm:px-6 border-t border-hairline bg-surface/50">
     <div class="max-w-6xl mx-auto">
-      <!-- Cabeçalho da Seção -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-        <div>
-          <span class="text-[11px] uppercase tracking-[0.22em] text-graphite block mb-2">Curadoria Minimalista</span>
-          <h2 class="font-serif text-3xl sm:text-5xl font-normal text-ink tracking-tight">
-            Catálogo & <span class="italic">Inspirações</span>
-          </h2>
-        </div>
-
-        <!-- Filtros por Categoria -->
-        <div id="catalog-filters" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" role="tablist">
-          <button data-filter="all" class="filter-btn active px-4 py-2 rounded-full text-xs font-medium tracking-wide bg-ink text-paper border border-ink transition-all whitespace-nowrap">
-            Todos
-          </button>
-          <button data-filter="simbolos" class="filter-btn px-4 py-2 rounded-full text-xs font-medium tracking-wide bg-surface text-graphite border border-hairline hover:border-ink hover:text-ink transition-all whitespace-nowrap">
-            Símbolos & Natureza
-          </button>
-          <button data-filter="lettering" class="filter-btn px-4 py-2 rounded-full text-xs font-medium tracking-wide bg-surface text-graphite border border-hairline hover:border-ink hover:text-ink transition-all whitespace-nowrap">
-            Lettering & Palavras
-          </button>
-          <button data-filter="numeros" class="filter-btn px-4 py-2 rounded-full text-xs font-medium tracking-wide bg-surface text-graphite border border-hairline hover:border-ink hover:text-ink transition-all whitespace-nowrap">
-            Números & Astros
-          </button>
-        </div>
+      <div class="text-center mb-10 sm:mb-14">
+        <span class="text-[11px] uppercase tracking-[0.22em] text-graphite block mb-2">Catálogo de Flashes</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-normal text-ink tracking-tight">
+          Folheie as <span class="italic">páginas</span>
+        </h2>
+        <p class="text-xs sm:text-sm text-graphite mt-3 max-w-md mx-auto">
+          Cada página traz vários desenhos. Escolha a página, diga qual desenho você quer e peça o orçamento.
+        </p>
       </div>
 
-      <!-- Grid do Catálogo (Renderizado dinamicamente via JS a partir de STUDIO_CONFIG) -->
-      <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- Cards injetados pelo script -->
-      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
-      <!-- Card Especial: "Tenho minha própria referência" -->
-      <div class="mt-8 bg-paper border border-hairline rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-        <div class="flex items-start sm:items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-surface border border-hairline flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
+        <!-- PÁGINA (VISUALIZADOR) -->
+        <div class="lg:col-span-7">
+          <div class="book-stage">
+            <div id="book-wrap" class="book-sheet-wrap mx-auto w-full max-w-[460px] mr-auto lg:mx-auto" style="margin-right:14px;margin-bottom:14px;">
+              <div id="book-page" class="book-page cursor-zoom-in" onclick="openModal()" role="button" tabindex="0" aria-label="Ampliar página">
+                <div id="page-frame" class="relative w-full bg-white flex items-center justify-center" style="aspect-ratio: 4 / 5.6;">
+                  <img id="page-img" alt="" class="w-full h-full object-contain p-3 sm:p-5 select-none" draggable="false" />
+                  <div id="page-missing" class="hidden absolute inset-0 flex-col items-center justify-center text-center p-8 gap-2">
+                    <span class="font-serif italic text-2xl text-graphite">Imagem não encontrada</span>
+                    <span id="page-missing-path" class="text-[11px] text-graphite font-mono break-all"></span>
+                    <span class="text-[11px] text-graphite">Salve a folha nesse caminho para ela aparecer aqui.</span>
+                  </div>
+                  <span class="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-surface/90 border border-hairline flex items-center justify-center text-ink" aria-hidden="true">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M11 8v6" /><path d="M8 11h6" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 class="font-serif text-xl sm:text-2xl text-ink">Tem uma ideia própria ou referência da internet?</h3>
-            <p class="text-xs sm:text-sm text-graphite mt-0.5">
-              Adaptamos frases, datas, homenagens ou desenhos minimalistas exclusivos para a sua pele.
+
+          <!-- Controles -->
+          <div class="mt-8 flex items-center justify-center gap-5">
+            <button id="btn-prev" type="button" aria-label="Página anterior"
+                    class="arrow-btn w-11 h-11 rounded-full bg-surface border border-hairline text-ink flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+            </button>
+            <p class="text-xs uppercase tracking-[0.2em] text-graphite min-w-[110px] text-center">
+              Página <span id="page-current" class="text-ink font-semibold">1</span> / <span id="page-total">5</span>
             </p>
+            <button id="btn-next" type="button" aria-label="Próxima página"
+                    class="arrow-btn w-11 h-11 rounded-full bg-surface border border-hairline text-ink flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            </button>
+          </div>
+          <p class="mt-3 text-center text-[11px] text-graphite sm:hidden">Deslize para o lado para virar a página</p>
+        </div>
+
+        <!-- INFO + MINIATURAS -->
+        <div class="lg:col-span-5 lg:pt-6">
+          <span id="info-label" class="text-[11px] uppercase tracking-[0.22em] text-graphite block">Florais</span>
+          <h3 id="info-title" class="font-serif text-3xl sm:text-4xl text-ink mt-1 leading-tight">Flores Delicadas</h3>
+          <p id="info-desc" class="text-sm text-graphite mt-3 leading-relaxed"></p>
+          <p class="text-xs text-graphite mt-3">Tamanho sugerido: <span id="info-size" class="text-ink font-medium"></span></p>
+
+          <div class="mt-6 flex flex-col sm:flex-row gap-3">
+            <button type="button" onclick="selectCurrentPage()"
+                    class="px-6 py-3.5 rounded-full bg-ink text-paper text-xs font-medium uppercase tracking-wider hover:bg-ink/90 transition-colors flex items-center justify-center gap-2">
+              <span>Orçar Desta Página</span>
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+            </button>
+            <button type="button" onclick="openModal()"
+                    class="px-6 py-3.5 rounded-full bg-surface border border-hairline text-ink text-xs font-medium uppercase tracking-wider hover:border-ink transition-colors">
+              Ver em Tela Cheia
+            </button>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-hairline">
+            <span class="text-[10px] uppercase tracking-[0.2em] text-graphite block mb-3">Todas as páginas</span>
+            <div id="thumbs" class="flex gap-3 overflow-x-auto no-scrollbar pb-2"></div>
+          </div>
+
+          <div class="mt-6 bg-paper border border-hairline rounded-2xl p-5 flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-surface border border-hairline flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-serif text-lg text-ink leading-snug">Tem uma ideia própria?</h4>
+              <p class="text-xs text-graphite mt-0.5">Frases, datas, homenagens ou desenhos exclusivos para a sua pele.</p>
+              <button type="button" onclick="selectCustomIdea()" class="mt-2 text-xs uppercase tracking-wider font-medium text-ink underline underline-offset-4 hover:text-graphite transition-colors">
+                Orçar ideia própria
+              </button>
+            </div>
           </div>
         </div>
-        <button type="button" onclick="selectCustomIdea()"
-                class="w-full sm:w-auto px-5 py-3 rounded-full bg-surface border border-ink text-ink text-xs font-medium uppercase tracking-wider hover:bg-ink hover:text-paper transition-colors shrink-0">
-          Orçar Ideia Própria
-        </button>
       </div>
     </div>
   </section>
 
   <!-- =====================================================================
-       4. COMO FUNCIONA (EXPERIÊNCIA DO ESTÚDIO EM 3 PASSOS)
+       4. PROCESSO
        ===================================================================== -->
   <section id="processo" class="py-16 sm:py-20 px-4 sm:px-6 border-t border-hairline">
     <div class="max-w-5xl mx-auto">
@@ -386,10 +405,9 @@
           <span class="font-serif italic text-2xl text-graphite">01.</span>
           <h3 class="text-sm uppercase tracking-[0.14em] font-semibold text-ink mt-3">Escolha ou Envie</h3>
           <p class="text-xs sm:text-sm text-graphite mt-2 leading-relaxed">
-            Selecione um flash do catálogo acima ou descreva a palavra, número ou símbolo que você deseja eternizar.
+            Folheie as páginas do catálogo e escolha um desenho, ou descreva a palavra, número ou símbolo que você deseja eternizar.
           </p>
         </div>
-
         <div class="bg-surface border border-hairline rounded-2xl p-6 sm:p-7">
           <span class="font-serif italic text-2xl text-graphite">02.</span>
           <h3 class="text-sm uppercase tracking-[0.14em] font-semibold text-ink mt-3">Tamanho & Local</h3>
@@ -397,7 +415,6 @@
             Defina os centímetros aproximados e a região do corpo. Enviamos o valor exato e horários disponíveis na Ilha.
           </p>
         </div>
-
         <div class="bg-surface border border-hairline rounded-2xl p-6 sm:p-7">
           <span class="font-serif italic text-2xl text-graphite">03.</span>
           <h3 class="text-sm uppercase tracking-[0.14em] font-semibold text-ink mt-3">Sessão Privada</h3>
@@ -410,7 +427,7 @@
   </section>
 
   <!-- =====================================================================
-       5. MINI-FORMULÁRIO INTELIGENTE DE ORÇAMENTO
+       5. ORÇAMENTO
        ===================================================================== -->
   <section id="orcamento" class="py-16 sm:py-24 px-4 sm:px-6 border-t border-hairline bg-sand/50">
     <div class="max-w-3xl mx-auto">
@@ -424,13 +441,9 @@
         </p>
       </div>
 
-      <!-- Cartão do Formulário -->
       <form id="booking-form" class="bg-surface border border-hairline rounded-3xl p-6 sm:p-10 shadow-soft space-y-6">
-        <!-- Origem da Arte -->
         <div>
-          <label class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2.5">
-            1. Tipo de Arte
-          </label>
+          <label class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2.5">1. Tipo de Arte</label>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5" id="origin-group">
             <button type="button" data-value="Catálogo do Estúdio"
                     class="origin-pill active px-3.5 py-2.5 rounded-xl text-xs font-medium border border-ink bg-ink text-paper transition-all text-center">
@@ -447,47 +460,37 @@
           </div>
         </div>
 
-        <!-- Descrição / Arte Escolhida -->
         <div>
-          <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center justify-between mb-2 gap-3">
             <label for="art-input" class="text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold">
-              2. Qual arte, palavra ou símbolo?
+              2. Qual desenho, palavra ou símbolo?
             </label>
-            <span id="selected-badge" class="hidden text-[11px] font-medium text-ink bg-sand px-2.5 py-0.5 rounded-full">
-              Selecionado do catálogo
+            <span id="selected-badge" class="hidden text-[11px] font-medium text-ink bg-sand px-2.5 py-0.5 rounded-full whitespace-nowrap">
+              Página do catálogo
             </span>
           </div>
           <input type="text" id="art-input" required
-                 placeholder="Ex: Palavra 'saudade' fina, número 11:11, ou ramo minimalista..."
+                 placeholder="Ex: Página 2, rosa do meio de cima / palavra 'saudade' fina / número 11:11..."
                  class="w-full px-4 py-3.5 rounded-xl bg-paper border border-hairline text-sm text-ink placeholder:text-graphite/60 focus:outline-none focus:border-ink transition-colors" />
+          <p id="art-hint" class="hidden text-[11px] text-graphite mt-2">
+            Complete dizendo qual desenho da página você quer (ex.: "o segundo da linha de cima").
+          </p>
         </div>
 
-        <!-- Tamanho Aproximado -->
         <div>
-          <label class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2.5">
-            3. Tamanho Aproximado
-          </label>
+          <label class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2.5">3. Tamanho Aproximado</label>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5" id="size-group">
             <button type="button" data-value="Micro (até 3cm)"
-                    class="size-pill active px-3.5 py-2.5 rounded-xl text-xs font-medium border border-ink bg-ink text-paper transition-all">
-              Micro (até 3cm)
-            </button>
+                    class="size-pill active px-3.5 py-2.5 rounded-xl text-xs font-medium border border-ink bg-ink text-paper transition-all">Micro (até 3cm)</button>
             <button type="button" data-value="Pequena (4 a 6cm)"
-                    class="size-pill px-3.5 py-2.5 rounded-xl text-xs font-medium border border-hairline bg-paper text-graphite hover:border-ink transition-all">
-              Pequena (4 a 6cm)
-            </button>
+                    class="size-pill px-3.5 py-2.5 rounded-xl text-xs font-medium border border-hairline bg-paper text-graphite hover:border-ink transition-all">Pequena (4 a 6cm)</button>
             <button type="button" data-value="Média (7 a 10cm)"
-                    class="size-pill px-3.5 py-2.5 rounded-xl text-xs font-medium border border-hairline bg-paper text-graphite hover:border-ink transition-all">
-              Média (7 a 10cm)
-            </button>
+                    class="size-pill px-3.5 py-2.5 rounded-xl text-xs font-medium border border-hairline bg-paper text-graphite hover:border-ink transition-all">Média (7 a 10cm)</button>
           </div>
         </div>
 
-        <!-- Local do Corpo -->
         <div>
-          <label class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2.5">
-            4. Local do Corpo
-          </label>
+          <label class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2.5">4. Local do Corpo</label>
           <div class="flex flex-wrap gap-2" id="placement-group">
             <button type="button" data-value="Antebraço" class="place-pill active px-3.5 py-2 rounded-full text-xs font-medium border border-ink bg-ink text-paper transition-all">Antebraço</button>
             <button type="button" data-value="Pulso / Mão" class="place-pill px-3.5 py-2 rounded-full text-xs font-medium border border-hairline bg-paper text-graphite hover:border-ink transition-all">Pulso / Mão</button>
@@ -498,17 +501,12 @@
           </div>
         </div>
 
-        <!-- Seu Nome -->
         <div>
-          <label for="client-name" class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2">
-            5. Seu Nome (Opcional)
-          </label>
-          <input type="text" id="client-name"
-                 placeholder="Como podemos te chamar?"
+          <label for="client-name" class="block text-[11px] uppercase tracking-[0.18em] text-graphite font-semibold mb-2">5. Seu Nome (Opcional)</label>
+          <input type="text" id="client-name" placeholder="Como podemos te chamar?"
                  class="w-full px-4 py-3 rounded-xl bg-paper border border-hairline text-sm text-ink placeholder:text-graphite/60 focus:outline-none focus:border-ink transition-colors" />
         </div>
 
-        <!-- Pré-visualização Elegante da Mensagem -->
         <div class="bg-paper border border-hairline rounded-2xl p-4">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-[10px] uppercase tracking-[0.18em] text-graphite font-semibold">Resumo do Pedido</span>
@@ -517,10 +515,8 @@
           <p id="message-preview" class="text-xs text-ink/85 leading-relaxed whitespace-pre-line font-normal"></p>
         </div>
 
-        <!-- Botão de Envio -->
         <button type="submit"
                 class="w-full py-4 px-6 rounded-full bg-ink text-paper text-xs sm:text-sm font-medium uppercase tracking-[0.16em] hover:bg-ink/90 active:scale-[0.99] transition-all shadow-soft flex items-center justify-center gap-2.5">
-          <!-- Ícone WhatsApp Minimalista -->
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
           </svg>
@@ -531,7 +527,7 @@
   </section>
 
   <!-- =====================================================================
-       6. RODAPÉ MINIMALISTA
+       6. RODAPÉ
        ===================================================================== -->
   <footer class="border-t border-hairline bg-paper py-12 px-4 sm:px-6">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -551,30 +547,22 @@
           <span id="footer-ig-handle">@pit_tattoo098</span>
         </a>
         <span class="text-hairline">|</span>
-        <a id="footer-wa" href="https://wa.me/5598985406108" target="_blank" rel="noopener noreferrer"
-           class="hover:text-ink transition-colors">
-          (98) 98540-6108
-        </a>
+        <a id="footer-wa" href="https://wa.me/5598985406108" target="_blank" rel="noopener noreferrer" class="hover:text-ink transition-colors">(98) 98540-6108</a>
       </div>
     </div>
   </footer>
 
   <!-- =====================================================================
-       7. BOTÕES FLUTUANTES ELEGANTES (FLOATING ACTION DOCK)
+       7. BOTÕES FLUTUANTES
        ===================================================================== -->
   <div class="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-2.5">
-    <!-- Botão Voltar ao Topo (aparece ao rolar) -->
     <button id="scroll-top-btn" type="button" aria-label="Voltar ao topo"
             onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
             class="opacity-0 pointer-events-none translate-y-2 w-10 h-10 rounded-full bg-surface/90 backdrop-blur-md border border-hairline text-ink shadow-soft flex items-center justify-center hover:border-ink transition-all duration-300">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m18 15-6-6-6 6" />
-      </svg>
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
     </button>
 
-    <!-- Dock Horizontal Inferior -->
     <div class="flex items-center gap-2.5">
-      <!-- Botão Flutuante Instagram -->
       <a id="fab-ig" href="https://www.instagram.com/pit_tattoo098/" target="_blank" rel="noopener noreferrer"
          aria-label="Seguir no Instagram"
          class="group relative w-11 h-11 rounded-full bg-surface/95 backdrop-blur-md border border-hairline text-ink shadow-float flex items-center justify-center hover:border-ink hover:-translate-y-0.5 transition-all">
@@ -583,13 +571,10 @@
           <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
           <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
         </svg>
-        <span class="hidden sm:block pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute -top-9 right-0 bg-ink text-paper text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md whitespace-nowrap">
-          @pit_tattoo098
-        </span>
+        <span class="hidden sm:block pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute -top-9 right-0 bg-ink text-paper text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md whitespace-nowrap">@pit_tattoo098</span>
       </a>
 
-      <!-- Botão Flutuante Principal WhatsApp -->
-      <a id="fab-wa" href="https://wa.me/5598985406108?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Tra%C3%A7os%20da%20Ilha%20e%20gostaria%20de%20or%C3%A7ar%20uma%20tattoo%20minimalista."
+      <a id="fab-wa" href="https://wa.me/5598985406108"
          target="_blank" rel="noopener noreferrer"
          class="h-11 px-4 sm:px-5 rounded-full bg-ink text-paper shadow-float flex items-center gap-2.5 hover:bg-ink/90 hover:-translate-y-0.5 active:scale-[0.98] transition-all">
         <span class="relative flex h-2 w-2">
@@ -602,104 +587,58 @@
   </div>
 
   <!-- =====================================================================
-       MODAL DE ZOOM DA ARTE (LIGHTBOX MINIMALISTA)
+       MODAL: PÁGINA EM TELA CHEIA
        ===================================================================== -->
-  <div id="art-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/40 backdrop-blur-sm" role="dialog" aria-modal="true">
-    <div class="bg-surface border border-hairline rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-float relative">
-      <button type="button" onclick="closeModal()" aria-label="Fechar"
-              class="absolute top-4 right-4 w-9 h-9 rounded-full bg-paper border border-hairline flex items-center justify-center text-graphite hover:text-ink hover:border-ink transition-colors">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-        </svg>
-      </button>
-
-      <div id="modal-artwork" class="w-full aspect-square bg-paper border border-hairline rounded-2xl flex items-center justify-center p-8 overflow-hidden">
-        <!-- SVG ou Imagem ampliada -->
+  <div id="art-modal" class="fixed inset-0 z-50 hidden flex-col bg-ink/80 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-between px-4 sm:px-6 py-3 text-paper">
+      <div>
+        <span id="modal-label" class="text-[10px] uppercase tracking-[0.2em] opacity-70 block"></span>
+        <h3 id="modal-title" class="font-serif text-xl sm:text-2xl leading-tight"></h3>
       </div>
+      <button type="button" onclick="closeModal()" aria-label="Fechar"
+              class="w-10 h-10 rounded-full border border-paper/30 flex items-center justify-center hover:bg-paper hover:text-ink transition-colors">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+      </button>
+    </div>
 
-      <div class="mt-5 flex items-center justify-between gap-4">
-        <div>
-          <span id="modal-category" class="text-[10px] uppercase tracking-[0.2em] text-graphite block">Categoria</span>
-          <h3 id="modal-title" class="font-serif text-2xl text-ink mt-0.5">Título da Arte</h3>
-          <p id="modal-size" class="text-xs text-graphite mt-0.5">Tamanho sugerido: 3cm – 5cm</p>
-        </div>
-        <button id="modal-select-btn" type="button"
-                class="px-5 py-3 rounded-full bg-ink text-paper text-xs font-medium uppercase tracking-wider hover:bg-ink/90 transition-colors shrink-0">
-          Orçar Esta
+    <div id="modal-body" class="flex-1 overflow-auto px-4 pb-4 flex">
+      <div class="m-auto bg-white rounded-xl p-3 sm:p-6 max-w-full">
+        <img id="modal-img" alt="" class="block max-h-[78vh] w-auto max-w-full object-contain" />
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t border-paper/15">
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="goTo(currentPage-1, true)" aria-label="Anterior"
+                class="w-10 h-10 rounded-full border border-paper/30 text-paper flex items-center justify-center hover:bg-paper hover:text-ink transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <span id="modal-count" class="text-paper text-xs tracking-[0.18em] uppercase min-w-[70px] text-center"></span>
+        <button type="button" onclick="goTo(currentPage+1, true)" aria-label="Próxima"
+                class="w-10 h-10 rounded-full border border-paper/30 text-paper flex items-center justify-center hover:bg-paper hover:text-ink transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
         </button>
       </div>
+      <button type="button" onclick="closeModal(); selectCurrentPage();"
+              class="px-5 py-2.5 rounded-full bg-paper text-ink text-xs font-medium uppercase tracking-wider hover:bg-white transition-colors">
+        Orçar Desta Página
+      </button>
     </div>
   </div>
 
-  <!-- Toast Notification -->
+  <!-- Toast -->
   <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 opacity-0 pointer-events-none transition-all duration-300 bg-ink text-paper text-xs tracking-wide px-5 py-3 rounded-full shadow-float flex items-center gap-2">
-    <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-    <span id="toast-text">Arte selecionada! Complete seu orçamento abaixo.</span>
+    <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+    <span id="toast-text">Página selecionada!</span>
   </div>
 
   <!-- =====================================================================
-       SCRIPT DE INTERATIVIDADE, ILUSTRAÇÕES FINELINE & WHATSAPP
+       SCRIPT
        ===================================================================== -->
   <script>
-    // Ilustrações Fineline Vetoriais de Alta Precisão (inspiradas nas referências enviadas)
-    const FINELINE_SVGS = {
-      saudade: `
-        <svg viewBox="0 0 200 120" class="w-44 h-28 text-ink" fill="none" stroke="currentColor">
-          <text x="100" y="64" text-anchor="middle" font-family="'Courier New', monospace" font-size="22" letter-spacing="4" fill="currentColor" stroke="none">saudade</text>
-          <path d="M52 76 Q 100 81 148 76" stroke-width="0.9" stroke-linecap="round" opacity="0.5"/>
-          <path d="M158 42 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" stroke-width="0.9"/>
-        </svg>`,
-      sunwave: `
-        <svg viewBox="0 0 200 140" class="w-40 h-28 text-ink" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M68 82 A 32 32 0 0 1 132 82" />
-          <line x1="100" y1="34" x2="100" y2="43" />
-          <line x1="66" y1="48" x2="73" y2="55" />
-          <line x1="134" y1="48" x2="127" y2="55" />
-          <line x1="50" y1="80" x2="60" y2="80" />
-          <line x1="140" y1="80" x2="150" y2="80" />
-          <path d="M46 98 C 64 98, 72 88, 86 88 C 78 96, 86 102, 100 96 C 112 90, 118 86, 126 88 C 118 96, 126 102, 154 96" />
-        </svg>`,
-      "1111": `
-        <svg viewBox="0 0 200 120" class="w-44 h-28 text-ink" fill="none" stroke="currentColor">
-          <text x="100" y="66" text-anchor="middle" font-family="'Cormorant Garamond', Georgia, serif" font-size="34" letter-spacing="5" fill="currentColor" stroke="none">11:11</text>
-          <path d="M100 28 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 l4 -1.5 z" stroke-width="0.9"/>
-        </svg>`,
-      cat: `
-        <svg viewBox="0 0 160 160" class="w-36 h-36 text-ink" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M66 44 L63 32 L72 39 C76 38, 82 38, 86 39 L94 32 L92 44 C97 49, 98 57, 93 63 C99 74, 101 92, 95 112 C104 114, 115 113, 122 109 C125 108, 126 112, 122 114 C112 119, 92 119, 72 117 C64 116, 61 108, 64 96 C67 82, 65 69, 63 60 C60 54, 62 48, 66 44 Z" />
-          <circle cx="87" cy="49" r="1" fill="currentColor" />
-        </svg>`,
-      resiliencia: `
-        <svg viewBox="0 0 220 120" class="w-48 h-28 text-ink" fill="none" stroke="currentColor">
-          <text x="98" y="68" text-anchor="middle" font-family="'Cormorant Garamond', Georgia, serif" font-style="italic" font-size="30" fill="currentColor" stroke="none">Resiliência</text>
-          <path d="M164 64 C 174 58, 182 48, 184 38" stroke-width="1.1" stroke-linecap="round"/>
-          <path d="M184 38 C 179 42, 178 48, 183 51 C 188 48, 189 42, 184 38 Z" stroke-width="1.1"/>
-          <path d="M175 53 C 169 51, 166 54, 169 58 C 173 59, 176 56, 175 53 Z" stroke-width="1.1"/>
-        </svg>`,
-      saturn: `
-        <svg viewBox="0 0 160 140" class="w-36 h-32 text-ink" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
-          <circle cx="80" cy="70" r="24" />
-          <path d="M58 62 C 34 68, 28 78, 36 84 C 46 91, 86 84, 112 72 C 132 62, 134 53, 124 50 C 118 48, 108 50, 98 53" />
-          <circle cx="122" cy="36" r="1.2" fill="currentColor" />
-        </svg>`,
-      axe: `
-        <svg viewBox="0 0 200 120" class="w-44 h-28 text-ink" fill="none" stroke="currentColor">
-          <text x="100" y="65" text-anchor="middle" font-family="'Courier New', monospace" font-size="26" letter-spacing="3" fill="currentColor" stroke="none">axé</text>
-          <path d="M74 78 Q 100 84 126 78" stroke-width="1" stroke-linecap="round"/>
-        </svg>`,
-      rose: `
-        <svg viewBox="0 0 160 160" class="w-36 h-36 text-ink" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M80 68 L80 128" />
-          <path d="M80 98 C 68 94, 64 86, 72 84 C 77 83, 80 90, 80 98 Z" />
-          <path d="M80 108 C 92 104, 96 96, 88 94 C 83 93, 80 100, 80 108 Z" />
-          <path d="M80 68 C 66 68, 64 50, 74 44 C 80 40, 88 42, 92 48 C 98 56, 92 68, 80 68 Z" />
-          <path d="M74 52 C 77 47, 85 47, 86 53 C 87 58, 79 60, 76 56 C 75 54, 78 51, 81 52" />
-        </svg>`
-    };
+    const PAGES = STUDIO_CONFIG.pages;
+    let currentPage = 0;
 
-    // Estado atual do formulário
     const formState = {
       origin: "Catálogo do Estúdio",
       art: "",
@@ -708,19 +647,17 @@
       clientName: ""
     };
 
-    let currentModalItem = null;
-
-    // Inicialização ao carregar o DOM
     document.addEventListener("DOMContentLoaded", () => {
       hydrateStudioInfo();
-      renderCatalog("all");
-      setupFilterButtons();
+      buildThumbs();
+      setupBook();
+      goTo(0, false);
       setupFormInteractions();
       updateMessagePreview();
       setupScrollListener();
     });
 
-    // Injeta os dados de STUDIO_CONFIG na página
+    /* ---------- Dados do estúdio ---------- */
     function hydrateStudioInfo() {
       document.getElementById("nav-studio-name").textContent = STUDIO_CONFIG.studioName;
       document.getElementById("hero-tagline").textContent = STUDIO_CONFIG.tagline;
@@ -728,114 +665,169 @@
       document.getElementById("footer-location").textContent = `${STUDIO_CONFIG.city} • ${STUDIO_CONFIG.studioNote}`;
       document.getElementById("footer-ig-handle").textContent = STUDIO_CONFIG.artistHandle;
       document.getElementById("preview-phone").textContent = STUDIO_CONFIG.whatsappDisplay;
+      document.getElementById("page-total").textContent = PAGES.length;
 
-      const igLinks = ["nav-ig-link", "footer-ig", "fab-ig"];
-      igLinks.forEach(id => {
+      ["nav-ig-link", "footer-ig", "fab-ig"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.href = STUDIO_CONFIG.instagramUrl;
       });
 
       const waFooter = document.getElementById("footer-wa");
-      if (waFooter) {
-        waFooter.href = `https://wa.me/${STUDIO_CONFIG.whatsappNumber}`;
-        waFooter.textContent = STUDIO_CONFIG.whatsappDisplay;
-      }
+      waFooter.href = `https://wa.me/${STUDIO_CONFIG.whatsappNumber}`;
+      waFooter.textContent = STUDIO_CONFIG.whatsappDisplay;
 
-      const fabWa = document.getElementById("fab-wa");
-      if (fabWa) {
-        const defaultMsg = encodeURIComponent(`Olá! Vim pelo site do ${STUDIO_CONFIG.studioName} e gostaria de saber mais sobre tattoos minimalistas.`);
-        fabWa.href = `https://wa.me/${STUDIO_CONFIG.whatsappNumber}?text=${defaultMsg}`;
-      }
+      const msg = encodeURIComponent(`Olá! Vim pelo site do ${STUDIO_CONFIG.studioName} e gostaria de saber mais sobre tattoos minimalistas.`);
+      document.getElementById("fab-wa").href = `https://wa.me/${STUDIO_CONFIG.whatsappNumber}?text=${msg}`;
     }
 
-    // Renderiza os cards do catálogo
-    function renderCatalog(filter) {
-      const grid = document.getElementById("catalog-grid");
-      const items = filter === "all"
-        ? STUDIO_CONFIG.catalogItems
-        : STUDIO_CONFIG.catalogItems.filter(item => item.category === filter);
+    /* ---------- Miniaturas ---------- */
+    function buildThumbs() {
+      const wrap = document.getElementById("thumbs");
+      wrap.innerHTML = PAGES.map((p, i) => `
+        <button type="button" data-index="${i}" aria-label="Ir para a página ${i + 1}"
+                class="thumb shrink-0 w-16 sm:w-[72px] rounded-lg border border-hairline bg-white overflow-hidden relative" style="aspect-ratio: 4 / 5.6;">
+          <img src="${p.image}" alt="" class="w-full h-full object-contain p-1" onerror="this.style.display='none'" />
+          <span class="absolute bottom-0.5 right-1 text-[10px] font-semibold text-graphite">${i + 1}</span>
+        </button>
+      `).join("");
 
-      grid.innerHTML = items.map(item => {
-        const artworkHtml = item.imageUrl
-          ? `<img src="${item.imageUrl}" alt="${item.title}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-             <div class="hidden w-full h-full items-center justify-center">${FINELINE_SVGS[item.svgKey] || FINELINE_SVGS.sunwave}</div>`
-          : `<div class="w-full h-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500">${FINELINE_SVGS[item.svgKey] || FINELINE_SVGS.sunwave}</div>`;
-
-        return `
-          <article class="catalog-card group bg-surface border border-hairline rounded-2xl p-4 flex flex-col justify-between">
-            <div>
-              <!-- Área Visual da Arte -->
-              <div onclick="openModal('${item.id}')"
-                   class="relative w-full aspect-square bg-paper rounded-xl border border-hairline/70 flex items-center justify-center overflow-hidden cursor-zoom-in">
-                ${artworkHtml}
-                <span class="absolute top-2.5 left-2.5 text-[10px] uppercase tracking-[0.15em] text-graphite bg-surface/90 backdrop-blur-sm px-2.5 py-1 rounded-full border border-hairline">
-                  ${item.size}
-                </span>
-                <span class="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-surface border border-hairline flex items-center justify-center text-ink" title="Ampliar arte">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M11 8v6" /><path d="M8 11h6" />
-                  </svg>
-                </span>
-              </div>
-
-              <!-- Info da Arte -->
-              <div class="mt-4">
-                <span class="text-[10px] uppercase tracking-[0.18em] text-graphite">${item.categoryLabel}</span>
-                <h3 class="font-serif text-xl text-ink mt-0.5 leading-snug">${item.title}</h3>
-              </div>
-            </div>
-
-            <!-- Botão de Seleção -->
-            <button type="button" onclick="selectCatalogArt('${item.id}')"
-                    class="mt-4 w-full py-2.5 px-4 rounded-xl bg-paper border border-hairline text-ink text-xs font-medium tracking-wide hover:bg-ink hover:text-paper hover:border-ink transition-all flex items-center justify-center gap-1.5">
-              <span>Selecionar para Orçar</span>
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-              </svg>
-            </button>
-          </article>
-        `;
-      }).join("");
-    }
-
-    // Configura abas de filtro
-    function setupFilterButtons() {
-      const buttons = document.querySelectorAll(".filter-btn");
-      buttons.forEach(btn => {
-        btn.addEventListener("click", () => {
-          buttons.forEach(b => {
-            b.classList.remove("bg-ink", "text-paper", "border-ink");
-            b.classList.add("bg-surface", "text-graphite", "border-hairline");
-          });
-          btn.classList.remove("bg-surface", "text-graphite", "border-hairline");
-          btn.classList.add("bg-ink", "text-paper", "border-ink");
-          renderCatalog(btn.dataset.filter);
-        });
+      wrap.querySelectorAll(".thumb").forEach(btn => {
+        btn.addEventListener("click", () => goTo(parseInt(btn.dataset.index, 10), true));
       });
     }
 
-    // Seleciona uma arte do catálogo e rola até o formulário
-    function selectCatalogArt(itemId) {
-      const item = STUDIO_CONFIG.catalogItems.find(i => i.id === itemId);
-      if (!item) return;
+    /* ---------- Livro: navegação ---------- */
+    function setupBook() {
+      document.getElementById("btn-prev").addEventListener("click", () => goTo(currentPage - 1, true));
+      document.getElementById("btn-next").addEventListener("click", () => goTo(currentPage + 1, true));
 
+      const img = document.getElementById("page-img");
+      img.addEventListener("error", () => {
+        img.style.visibility = "hidden";
+        const miss = document.getElementById("page-missing");
+        miss.classList.remove("hidden");
+        miss.classList.add("flex");
+        document.getElementById("page-missing-path").textContent = PAGES[currentPage].image;
+      });
+      img.addEventListener("load", () => {
+        img.style.visibility = "visible";
+        const miss = document.getElementById("page-missing");
+        miss.classList.add("hidden");
+        miss.classList.remove("flex");
+      });
+
+      // Teclado
+      document.addEventListener("keydown", (e) => {
+        const tag = (e.target.tagName || "").toLowerCase();
+        if (tag === "input" || tag === "textarea") return;
+        if (e.key === "ArrowLeft") goTo(currentPage - 1, true);
+        if (e.key === "ArrowRight") goTo(currentPage + 1, true);
+        if (e.key === "Escape") closeModal();
+      });
+
+      // Swipe no celular
+      const page = document.getElementById("book-page");
+      let startX = 0, startY = 0;
+      page.addEventListener("touchstart", (e) => {
+        startX = e.changedTouches[0].clientX;
+        startY = e.changedTouches[0].clientY;
+      }, { passive: true });
+      page.addEventListener("touchend", (e) => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          goTo(currentPage + (dx < 0 ? 1 : -1), true);
+          page.dataset.swiped = "1";
+          setTimeout(() => { delete page.dataset.swiped; }, 400);
+        }
+      }, { passive: true });
+
+      // Evita abrir o modal logo após um swipe
+      page.addEventListener("click", (e) => {
+        if (page.dataset.swiped) e.stopImmediatePropagation();
+      }, true);
+
+      page.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openModal(); }
+      });
+    }
+
+    function goTo(index, animate) {
+      if (index < 0 || index >= PAGES.length) return;
+      const direction = index >= currentPage ? 1 : -1;
+      const changed = index !== currentPage;
+      currentPage = index;
+      const p = PAGES[index];
+
+      const img = document.getElementById("page-img");
+      const book = document.getElementById("book-page");
+
+      const apply = () => {
+        img.style.visibility = "visible";
+        document.getElementById("page-missing").classList.add("hidden");
+        document.getElementById("page-missing").classList.remove("flex");
+        img.alt = `Página ${index + 1}: ${p.title}`;
+        img.src = p.image;
+      };
+
+      if (animate && changed && book.animate) {
+        const out = book.animate(
+          [{ transform: "rotateY(0deg)", opacity: 1 },
+           { transform: `rotateY(${direction * -16}deg) translateX(${direction * -28}px)`, opacity: 0 }],
+          { duration: 220, easing: "ease-in", fill: "forwards" }
+        );
+        out.onfinish = () => {
+          apply();
+          book.animate(
+            [{ transform: `rotateY(${direction * 16}deg) translateX(${direction * 28}px)`, opacity: 0 },
+             { transform: "rotateY(0deg)", opacity: 1 }],
+            { duration: 380, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "none" }
+          );
+          out.cancel();
+        };
+      } else {
+        apply();
+      }
+
+      document.getElementById("page-current").textContent = index + 1;
+      document.getElementById("info-label").textContent = p.label;
+      document.getElementById("info-title").textContent = p.title;
+      document.getElementById("info-desc").textContent = p.desc;
+      document.getElementById("info-size").textContent = p.size;
+
+      document.getElementById("btn-prev").disabled = index === 0;
+      document.getElementById("btn-next").disabled = index === PAGES.length - 1;
+
+      document.querySelectorAll(".thumb").forEach((t, i) => t.classList.toggle("is-active", i === index));
+
+      // Modal (se estiver aberto)
+      const modal = document.getElementById("art-modal");
+      if (!modal.classList.contains("hidden")) fillModal();
+    }
+
+    /* ---------- Seleção para orçamento ---------- */
+    function selectCurrentPage() {
+      const p = PAGES[currentPage];
       setPillActive("origin-group", ".origin-pill", "Catálogo do Estúdio");
       formState.origin = "Catálogo do Estúdio";
-      formState.art = `${item.title} (${item.categoryLabel})`;
+      formState.art = `Página ${currentPage + 1} — ${p.title}: desenho `;
 
       const artInput = document.getElementById("art-input");
       artInput.value = formState.art;
 
-      const badge = document.getElementById("selected-badge");
-      badge.classList.remove("hidden");
+      document.getElementById("selected-badge").classList.remove("hidden");
+      document.getElementById("art-hint").classList.remove("hidden");
 
       updateMessagePreview();
-      showToast(`"${item.title}" adicionada ao orçamento!`);
+      showToast(`Página ${currentPage + 1} adicionada ao orçamento!`);
 
       document.getElementById("orcamento").scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => {
+        artInput.focus();
+        artInput.setSelectionRange(artInput.value.length, artInput.value.length);
+      }, 650);
     }
 
-    // Seleciona modo "Ideia Própria" e rola até o formulário
     function selectCustomIdea() {
       setPillActive("origin-group", ".origin-pill", "Ideia Própria / Exclusiva");
       formState.origin = "Ideia Própria / Exclusiva";
@@ -844,13 +836,13 @@
       const artInput = document.getElementById("art-input");
       artInput.value = "";
       document.getElementById("selected-badge").classList.add("hidden");
+      document.getElementById("art-hint").classList.add("hidden");
 
       updateMessagePreview();
       document.getElementById("orcamento").scrollIntoView({ behavior: "smooth" });
       setTimeout(() => artInput.focus(), 550);
     }
 
-    // Helper visual para ativar pills
     function setPillActive(groupId, selector, value) {
       const group = document.getElementById(groupId);
       if (!group) return;
@@ -865,21 +857,20 @@
       });
     }
 
-    // Configura interações do mini-formulário
+    /* ---------- Formulário ---------- */
     function setupFormInteractions() {
-      // Origem
       document.querySelectorAll(".origin-pill").forEach(pill => {
         pill.addEventListener("click", () => {
           formState.origin = pill.dataset.value;
           setPillActive("origin-group", ".origin-pill", formState.origin);
           if (formState.origin !== "Catálogo do Estúdio") {
             document.getElementById("selected-badge").classList.add("hidden");
+            document.getElementById("art-hint").classList.add("hidden");
           }
           updateMessagePreview();
         });
       });
 
-      // Tamanho
       document.querySelectorAll(".size-pill").forEach(pill => {
         pill.addEventListener("click", () => {
           formState.size = pill.dataset.value;
@@ -888,7 +879,6 @@
         });
       });
 
-      // Local do corpo
       document.querySelectorAll(".place-pill").forEach(pill => {
         pill.addEventListener("click", () => {
           formState.placement = pill.dataset.value;
@@ -897,7 +887,6 @@
         });
       });
 
-      // Inputs de texto
       document.getElementById("art-input").addEventListener("input", (e) => {
         formState.art = e.target.value;
         updateMessagePreview();
@@ -908,17 +897,13 @@
         updateMessagePreview();
       });
 
-      // Envio para WhatsApp
       document.getElementById("booking-form").addEventListener("submit", (e) => {
         e.preventDefault();
-        const message = buildWhatsAppMessage();
-        const encoded = encodeURIComponent(message);
-        const url = `https://wa.me/${STUDIO_CONFIG.whatsappNumber}?text=${encoded}`;
+        const url = `https://wa.me/${STUDIO_CONFIG.whatsappNumber}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
         window.open(url, "_blank", "noopener,noreferrer");
       });
     }
 
-    // Monta o texto limpo da mensagem para o WhatsApp
     function buildWhatsAppMessage() {
       const greeting = formState.clientName.trim()
         ? `Olá! Me chamo *${formState.clientName.trim()}* e vim pelo site do *${STUDIO_CONFIG.studioName}*.`
@@ -944,42 +929,38 @@
       document.getElementById("message-preview").textContent = buildWhatsAppMessage().replace(/\*/g, "");
     }
 
-    // Modal de Zoom da Arte
-    function openModal(itemId) {
-      const item = STUDIO_CONFIG.catalogItems.find(i => i.id === itemId);
-      if (!item) return;
-      currentModalItem = item;
+    /* ---------- Modal tela cheia ---------- */
+    function fillModal() {
+      const p = PAGES[currentPage];
+      document.getElementById("modal-label").textContent = p.label;
+      document.getElementById("modal-title").textContent = p.title;
+      document.getElementById("modal-count").textContent = `${currentPage + 1} / ${PAGES.length}`;
+      const mi = document.getElementById("modal-img");
+      mi.alt = `Página ${currentPage + 1}: ${p.title}`;
+      mi.src = p.image;
+      document.getElementById("modal-body").scrollTo(0, 0);
+    }
 
-      const artworkBox = document.getElementById("modal-artwork");
-      artworkBox.innerHTML = item.imageUrl
-        ? `<img src="${item.imageUrl}" alt="${item.title}" class="w-full h-full object-contain" />`
-        : (FINELINE_SVGS[item.svgKey] || FINELINE_SVGS.sunwave);
-
-      document.getElementById("modal-category").textContent = item.categoryLabel;
-      document.getElementById("modal-title").textContent = item.title;
-      document.getElementById("modal-size").textContent = `Tamanho sugerido: ${item.size}`;
-
-      document.getElementById("modal-select-btn").onclick = () => {
-        closeModal();
-        selectCatalogArt(item.id);
-      };
-
+    function openModal() {
+      fillModal();
       const modal = document.getElementById("art-modal");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
+      document.body.style.overflow = "hidden";
     }
 
     function closeModal() {
       const modal = document.getElementById("art-modal");
       modal.classList.add("hidden");
       modal.classList.remove("flex");
+      document.body.style.overflow = "";
     }
 
-    document.getElementById("art-modal").addEventListener("click", (e) => {
-      if (e.target.id === "art-modal") closeModal();
+    document.getElementById("modal-body").addEventListener("click", (e) => {
+      if (e.target.id === "modal-body") closeModal();
     });
 
-    // Toast notification
+    /* ---------- Toast ---------- */
     let toastTimer;
     function showToast(text) {
       const toast = document.getElementById("toast");
@@ -993,17 +974,16 @@
       }, 3200);
     }
 
-    // Controle do botão flutuante "Voltar ao topo"
+    /* ---------- Voltar ao topo ---------- */
     function setupScrollListener() {
-      const scrollBtn = document.getElementById("scroll-top-btn");
+      const btn = document.getElementById("scroll-top-btn");
       window.addEventListener("scroll", () => {
-        if (window.scrollY > 450) {
-          scrollBtn.classList.remove("opacity-0", "pointer-events-none", "translate-y-2");
-          scrollBtn.classList.add("opacity-100", "translate-y-0");
-        } else {
-          scrollBtn.classList.add("opacity-0", "pointer-events-none", "translate-y-2");
-          scrollBtn.classList.remove("opacity-100", "translate-y-0");
-        }
+        const show = window.scrollY > 450;
+        btn.classList.toggle("opacity-0", !show);
+        btn.classList.toggle("pointer-events-none", !show);
+        btn.classList.toggle("translate-y-2", !show);
+        btn.classList.toggle("opacity-100", show);
+        btn.classList.toggle("translate-y-0", show);
       }, { passive: true });
     }
   </script>
